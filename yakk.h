@@ -3,12 +3,12 @@
 #define YAKK_H_
 
 
-//Global Variables
-uint32_t YKCtxSwCount; //Global variable tracking context switches
-uint32_t YKIdleCount;//Global variable used by idle task
-uint32_t YKTickNum; //Global variable incremented by tick handler 
+// Global Variables shared with application code
+extern uint32_t YKCtxSwCount; //Global variable tracking context switches
+extern uint32_t YKIdleCount;  //Global variable used by idle task
+extern uint32_t YKTickNum;    //Global variable incremented by tick handler 
 
-//Functions
+// Kernel functions
 void YKInitialize();
 void YKNewTask(void(*task)(void),void *taskStack, unsigned char priority);
 void YKRun();	
