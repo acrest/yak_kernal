@@ -4,9 +4,9 @@
 
 
 // Global Variables shared with application code
-extern uint32_t YKCtxSwCount; //Global variable tracking context switches
-extern uint32_t YKIdleCount;  //Global variable used by idle task
-extern uint32_t YKTickNum;    //Global variable incremented by tick handler 
+extern unsigned YKCtxSwCount; //Global variable tracking context switches
+extern unsigned YKIdleCount;  //Global variable used by idle task
+extern unsigned YKTickNum;    //Global variable incremented by tick handler 
 
 // Kernel functions
 void YKInitialize();
@@ -17,8 +17,8 @@ void YKEnterMutex();
 void YKExitMutex();
 void YKEnterISR();
 void YKExitISR();
-void YKScheduler();
-void YKDispatcher();
+void YKScheduler(char blocking);
 void YKTickHandler();
+void YKIdleTask(void);
 
-
+#endif

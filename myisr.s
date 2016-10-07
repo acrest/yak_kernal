@@ -11,6 +11,12 @@ resetISR:
 	push		DS
 	push		ES
 
+  cmp byte [isrDepth], 0
+  jne resetISR2
+  mov [lastRunningTask], SP
+
+resetISR2:
+  call YKEnterISR
 ;Enable interrupts to allow higher priority IRQs to interrupt.
 	sti
 
@@ -23,6 +29,7 @@ resetISR:
 ;Send the EOI command to the PIC, informing it that the handler is finished.
 	call 		signalEOI
 
+  call YKExitISR
 ;Restore the context of what was running before the interrupt occurred by popping the registers saved in step 1 off the stack.
 	pop			ES
 	pop			DS
@@ -49,6 +56,12 @@ ticker:
 	push		DS
 	push		ES
 
+  cmp byte [isrDepth], 0
+  jne ticker2
+  mov [lastRunningTask], SP
+
+ticker2:
+  call YKEnterISR
 ;Enable interrupts to allow higher priority IRQs to interrupt.
 	sti
 
@@ -61,6 +74,7 @@ ticker:
 ;Send the EOI command to the PIC, informing it that the handler is finished.
 	call 		signalEOI
 
+  call YKExitISR
 ;Restore the context of what was running before the interrupt occurred by popping the registers saved in step 1 off the stack.
 	pop			ES
 	pop			DS
@@ -86,7 +100,13 @@ keys:
 	push		BP
 	push		DS
 	push		ES
+  
+  cmp byte [isrDepth], 0
+  jne keys2
+  mov [lastRunningTask], SP
 
+keys2:
+  call YKEnterISR
 ;Enable interrupts to allow higher priority IRQs to interrupt.
 	sti
 
@@ -99,6 +119,7 @@ keys:
 ;Send the EOI command to the PIC, informing it that the handler is finished.
 	call 		signalEOI
 
+  call YKExitISR
 ;Restore the context of what was running before the interrupt occurred by popping the registers saved in step 1 off the stack.
 	pop			ES
 	pop			DS
