@@ -20,5 +20,5 @@ lab4bapp.s:	lab4b_app.c
 		c86 -g lab4bapp.i lab4bapp.s
 
 clean:
-		rm YAK.bin YAK.lst YAKfinal.s myinth.s myinth.i \
+		rm YAK.bin YAK.lst myinth.s myinth.i \
 		yakc.s yakc.i lab4bapp.s lab4bapp.i

@@ -74,14 +74,14 @@ unsigned YKTickNum;    // Global variable incremented by tick handler
 
 // FLAGS
 // Should be set by a blocking function and unset by the dispatcher only
-char kernel_running_flag;
+char kernel_running_flag=0;
 
 // Number of nested ISRs
 unsigned char isrDepth;
 
 // Stack frame for the idle task
 int YKIdleTaskStack[STACK_SIZE];
-
+int taskCount;
 // TCB: array of task structs. This array is declared in order to allocate
 // space for each task struct. In usage, each struct will be treated like a
 // node in a linked list.
@@ -101,15 +101,14 @@ void YKInitialize() {
   // Here we disable interrupts. They will get turned on again after the 
   // dispatcher runs for the first time.
   YKEnterMutex();
-
   YKCtxSwCount = 0; // Context switch count
   YKIdleCount  = 0; // Iterations of the idle task
   YKTickNum    = 0; // Number of tick interrupts
+  taskCount = 0;
   readyLstHead = NULL;
  	suspLstHead  = NULL;
  	called_from_blocking_function_flag = 0;
- 	kernel_running_flag = 0;
-	lastRunningTask = &TCBArray[0];
+	//lastRunningTask = &TCBArray[0];
   YKNewTask(YKIdleTask, &YKIdleTaskStack[STACK_SIZE], IDLE_PRIORITY);
 	readyLstHead->state = TASK_STATE_RUNNING;
 }
@@ -125,7 +124,7 @@ void YKNewTask(void(*taskCode)(void), void *taskStack, unsigned char priority) {
   // push them on at the top of the stack frame. I'm thinking we should push
   // them on the stack frame, since that's how it is going to be in all other
   // contexts
-
+  //taskCount++;
   unsigned int index;
   Tptr t;
   int* sp;
@@ -154,7 +153,7 @@ void YKNewTask(void(*taskCode)(void), void *taskStack, unsigned char priority) {
   *(sp+5)  = 0x0;   // DX
   *(sp+4)  = 0x0;   // SI
   *(sp+3)  = 0x0;   // DI
-  *(sp+2)  = 0x0;   // BP
+  *(sp+2)  = (int)((int*)taskStack -1);   // BP
   *(sp+1)  = 0x0;   // DS
   *(sp+0)  = 0x0;   // ES
 
@@ -185,6 +184,11 @@ void YKNewTask(void(*taskCode)(void), void *taskStack, unsigned char priority) {
     t->next = t_iter->next;
     t_iter->next = t;
   }
+  taskCount++;
+
+//printString("the new task has priority ");
+//printInt(t->priority);
+//printNewLine();
 
   // Call the scheduler
   YKScheduler(1);
@@ -197,19 +201,40 @@ void YKRun() {
 }
 
 void YKScheduler(char blocking) {
+//printString(" the last task has priority ");
+//printInt(lastRunningTask->priority);
+//printNewLine();
+//printString(" the current head has priority ");
+//printInt(readyLstHead->priority);
+//printNewLine();
   // If YKRun has not been called yet, return.
- 	if (!kernel_running_flag) return;
+ 	if (!kernel_running_flag){ 
+		//printString("exited 1\n");
+		return;
+		}
+
   // If the currently executing task is the highest priority ready task, return.
-  if (readyLstHead == lastRunningTask) return;
+	
+	
+	if (readyLstHead->priority == lastRunningTask->priority){
+		//printString("exited 2\n");
+ 	  return;
+	}
+	else{
+		//printString("updating Last Running Task\n");
+		YKCtxSwCount++;
+		*lastRunningTask = *readyLstHead;
+		YKDispatcher(blocking);
+	}
   // If the highest priority ready task is not running:
   // 1) Set the lastRunningTask state to READY, if it was still RUNNING
   // 2) Set the HPRT state to RUNNING
   // 3) Call the dispatcher, passing it the address of the first task in the ready list
-  if (lastRunningTask->state == TASK_STATE_RUNNING)
-    lastRunningTask->state = TASK_STATE_READY;
-  readyLstHead->state = TASK_STATE_RUNNING;
-  lastRunningTask = readyLstHead;
-  YKDispatcher(blocking);
+ // if (lastRunningTask->state == TASK_STATE_RUNNING)
+ //   lastRunningTask->state = TASK_STATE_READY;
+ // readyLstHead->state = TASK_STATE_RUNNING;
+ // lastRunningTask = readyLstHead;
+ // YKDispatcher(blocking);
 }
 
 void YKIdleTask(void) {

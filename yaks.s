@@ -23,26 +23,24 @@ YKDispatcher2:
 	mov [bx], sp
 	;load sp
  	mov 		BX, [readyLstHead]
-;	mov 		SP, BX
 	mov			SP, [BX]
 
 YKContextRestorer:
 	pop			ES
 	pop			DS
-	pop			BP
+	pop			BP	
 	pop			DI
 	pop			SI
 	pop			DX
 	pop			CX
 	pop			BX
 	pop			AX
-iret
+	iret
 
 YKContextSaver:
 	pushf
 	push 		CS
 	push 		word [BP+2]
-	;push		BP
 	push		AX
 	push		BX
 	push		CX
